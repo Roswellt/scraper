@@ -14,11 +14,13 @@
     <%- include partials/scripts.ejs %>
     <script>
       var socket = io.connect('http://localhost:8080');
-      socket.on("scrape", (data, fn) => {
+      socket.emit("client_connect");
+
+      socket.on("scrape", () => {
         console.log("Scraping url");
-        fetch('http://httpbin.org/ip')
-          .then(resp=> resp.text()).then(body => console.log(body));  
-      })
+        // fetch('http://httpbin.org/ip')
+        //   .then(resp=> resp.text()).then(body => console.log(body));
+      });
     </script>
   </body>
 </html>

@@ -5,10 +5,8 @@ const roundRobin = (clients) => {
         return [];
     }
     let client = clients[counter];
-    if (client == undefined) {
-        return [];
-    }
     counter = (client + 1) % clients.length;
+    console.log("Client chosen %s", client);
     return client;
 }
 
