@@ -18,11 +18,8 @@ route_controller(app);
 
 var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
-var request = require("request")
 
 // Set up the sockets
 socket_controller(io);
 
 server.listen(port, () => console.log(`App listening on http://localhost:${port}`));
-
-

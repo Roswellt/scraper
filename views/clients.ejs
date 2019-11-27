@@ -3,23 +3,31 @@
   <head>
     <title>Account</title>
     <%- include partials/head.ejs %>
-    <script src="/socket.io/socket.io.js">
-    </script>
-    
-
+    <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
     
     <div> Connecting as client </div>
     <%- include partials/scripts.ejs %>
     <script>
-      var socket = io.connect('http://localhost:8080');
+      var socket = io('http://localhost:8080');
+
       socket.emit("client_connect");
 
-      socket.on("scrape", () => {
-        console.log("Scraping url");
-        // fetch('http://httpbin.org/ip')
-        //   .then(resp=> resp.text()).then(body => console.log(body));
+      socket.on("connect", () => {
+        console.log("Connected");
+      })
+
+      socket.on("scrape", (data) => {
+        console.log(`Scraping url ${data.url}`);
+
+        // Send request through CORS proxy first to avoid access error
+        const proxyurl = "https://cors-anywhere.herokuapp.com/";
+        const url = "https://" + data.url;
+        fetch(proxyurl + data.url) // https://cors-anywhere.herokuapp.com/https://example.com
+        .then(response => response.text())
+        .then(contents => console.log(contents))
+        .catch(() => console.log("Can’t access " + url + " response. Blocked by browser?"))
       });
     </script>
   </body>

@@ -10,16 +10,19 @@ module.exports = function(io) {
 
     socket.on("call_scrape", (data) => {
       let client = roundRobin(clients.getClients());
-      if (client != []) {
-        io.emit("scrape");
+      if (client != undefined) {
+        console.log(`Using client ${client.socket_id} to scrape url: ${data.url}`)
+        io.to(client.socket_id).emit("scrape", {
+          url: data.url
+        });
       }
     })
 
     socket.on("client_connect", () => {
       let id = Math.random().toString(36).substring(7);
       clients.addClient(id, socket.id);
-      // console.log("Client joining room");
-      // socket.join("clients");
+      console.log(`Client added ${socket.id}`);
+      console.log(`Clients list ${clients.getClients()}`)
     })
 
     socket.on("disconnect", () => {
