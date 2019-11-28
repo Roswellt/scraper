@@ -24,10 +24,19 @@
         // Send request through CORS proxy first to avoid access error
         const proxyurl = "https://cors-anywhere.herokuapp.com/";
         const url = "https://" + data.url;
-        fetch(proxyurl + data.url) // https://cors-anywhere.herokuapp.com/https://example.com
-        .then(response => response.text())
-        .then(contents => console.log(contents))
-        .catch(() => console.log("Can’t access " + url + " response. Blocked by browser?"))
+        socket.emit("return_result", {
+          result: "TEST",
+          user_id: data.user_id
+        })
+        // fetch(proxyurl + data.url) // https://cors-anywhere.herokuapp.com/https://example.com
+        // .then(response => response.text())
+        // .then(contents => {
+        //   console.log("Returning result to user");
+        //   io.emit("return_result", {
+        //     result: contents
+        //   })
+        // })
+        // .catch(() => console.log("Can’t access " + url + " response. Blocked by browser?"))
       });
     </script>
   </body>

@@ -11,9 +11,9 @@ class ClientsArray {
   }
 
   removeClient(id) {
-      var removedClient = this.clients.filter((client) => client.client_id === id)[0];
+      var removedClient = this.clients.filter((client) => client.socket_id === id)[0];
       if (removedClient) {
-          this.clients = this.clients.filter((client) => client.client_id !== id);
+          this.clients = this.clients.filter((client) => client.socket_id !== id);
       }
       return removedClient;
   }

@@ -13,9 +13,19 @@ module.exports = function(io) {
       if (client != undefined) {
         console.log(`Using client ${client.socket_id} to scrape url: ${data.url}`)
         io.to(client.socket_id).emit("scrape", {
-          url: data.url
+          url: data.url,
+          user_id: data.user_id
         });
+      } else {
+        console.log("No client available");
       }
+    })
+
+    socket.on("return_result", (data) => {
+      console.log(`Sending to ${data.user_id}`);
+      io.to(data.user_id).emit("return_result_user", {
+        result: data.result
+      })
     })
 
     socket.on("client_connect", () => {
@@ -27,6 +37,7 @@ module.exports = function(io) {
 
     socket.on("disconnect", () => {
       console.log(`Client disconnected ${socket.id}`);
+      clients.removeClient(socket.id)
     })
   })
 }
