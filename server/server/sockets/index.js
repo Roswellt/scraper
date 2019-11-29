@@ -18,6 +18,9 @@ module.exports = function(io) {
         });
       } else {
         console.log("No client available");
+        io.to(data.user_id).emit("return_result_user", {
+          result: "No clients available"
+        });
       }
     })
 
