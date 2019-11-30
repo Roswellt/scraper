@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import io from "socket.io-client";
 import { StyleSheet, Text, View } from 'react-native';
 import { YellowBox } from 'react-native';
+import { URL } from './utils/constants'
 import * as Battery from 'expo-battery';
 import * as Device from 'expo-device';
 
@@ -49,7 +50,7 @@ export default class App extends Component {
         'Unrecognized WebSocket connection option(s) `agent`, `perMessageDeflate`, `pfx`, `key`, `passphrase`, `cert`, `ca`, `ciphers`, `rejectUnauthorized`. Did you mean to put these under `headers`?'
     ]);
 
-    const socket = io.connect("http://192.168.2.210:8080");
+    const socket = io.connect(URL);
     socket.emit("client_connect");
 
     socket.on("scrape", (data) => {
@@ -58,20 +59,27 @@ export default class App extends Component {
       // Send request through CORS proxy first to avoid access error
       const proxyurl = "https://cors-anywhere.herokuapp.com/";
       const url = "https://" + data.url;
-      socket.emit("return_result", {
-        result: "TEST",
-        user_id: data.user_id
-      });
 
-      // fetch(proxyurl + data.url) // https://cors-anywhere.herokuapp.com/https://example.com
-      // .then(response => response.text())
-      // .then(contents => {
-      //   console.log("Returning result to user");
-      //   io.emit("return_result", {
-      //     result: contents
-      //   })
-      // })
-      // .catch(() => console.log("Can’t access " + url + " response. Blocked by browser?"))
+      fetch(proxyurl + data.url) // https://cors-anywhere.herokuapp.com/https://example.com
+      .then(response => response.text())
+      .then(contents => {
+        console.log("Returning result to user");
+        powerState = this.state.powerState;
+        powerState.batteryState = this.batteryState[powerState.batteryState]
+        io.emit("return_result", {
+          result: contents,
+          user_id: data.user_id,
+          powerState: powerState
+        })
+      })
+      .catch(() => {
+        let error = "Can’t access " + url + " response. Blocked by browser?"
+        io.emit("return_result", {
+          result: error,
+          user_id: data.user_id,
+          powerState: {}
+        })
+      })
     });
   }
 

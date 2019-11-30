@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 
 let io = require("socket.io-client");
-let socket = io.connect("http://localhost:8080");
+let socket = io.connect("https://scraper-260404.appspot.com/");
+// let socket = io.connect("http://localhost:8080");
 
 const resultPromise = () => {
   return new Promise((resolve, reject) => {
@@ -12,8 +13,9 @@ const resultPromise = () => {
   });
 }
 
-router.get('/:url', (req, res) => {
-  const { url } = req.params;
+router.get('/*', (req, res) => {
+  // Since params are URLs which can contain slashes, use * wildcard to get <URL> from scraper-job/<URL>
+  const url = req.params[0];
   console.log(`Calling scrape ${url} for user ${socket.id}`);
   socket.emit("call_scrape", {
     url: url,

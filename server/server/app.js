@@ -1,5 +1,3 @@
-const port = 8080;
-
 const express = require('express');
 
 let route_controller = require('./routes/route_controller');
@@ -23,4 +21,8 @@ var io = require('socket.io').listen(server);
 // Set up the sockets
 socket_controller(io);
 
-server.listen(port, () => console.log(`App listening on http://localhost:${port}`));
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+  console.log(`App listening on port ${PORT}`);
+  console.log('Press Ctrl+C to quit.');
+});
