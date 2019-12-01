@@ -1,15 +1,15 @@
-const { ClientsArray } = require("../objects/clientarray");
-
 let { roundRobin } = require("../utils/utils");
-let clients = new ClientsArray();
+let mongo = require('../mongo-setup');
 
 module.exports = function(io) {
 
   io.on("connect", function(socket) {
     console.log(`New socket connected ${socket.id}`);
 
-    socket.on("call_scrape", (data) => {
-      let client = roundRobin(clients.getClients());
+    socket.on("call_scrape", async (data) => {
+      let clients = await mongo.getClientCollection().find().toArray();
+      let counter = await mongo.getRRCount();
+      let client = roundRobin(clients, counter.value);
       if (client != undefined) {
         console.log(`Using client ${client.socket_id} to scrape url: ${data.url}`)
         io.to(client.socket_id).emit("scrape", {
@@ -32,15 +32,22 @@ module.exports = function(io) {
     })
 
     socket.on("client_connect", () => {
+      let clients = mongo.getClientCollection();
       let id = Math.random().toString(36).substring(7);
-      clients.addClient(id, socket.id);
+      clients.insertOne({
+        id: id,
+        socket_id: socket.id
+      })
       console.log(`Client added ${socket.id}`);
-      console.log(`Clients list ${clients.getClients()}`)
+      console.log(`Clients list ${clients.find()}`)
     })
 
     socket.on("disconnect", () => {
       console.log(`Client disconnected ${socket.id}`);
-      clients.removeClient(socket.id)
+      let clients = mongo.getClientCollection();
+      clients.deleteOne({
+        socket_id: socket.id
+      })
     })
   })
 }

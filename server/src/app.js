@@ -1,5 +1,5 @@
 const express = require('express');
-const dotenv = require('dotenv')
+const mongo = require('./mongo-setup');
 
 let route_controller = require('./routes/route_controller');
 let socket_controller = require('./sockets');
@@ -23,7 +23,10 @@ var io = require('socket.io').listen(server);
 socket_controller(io);
 
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`);
-  console.log('Press Ctrl+C to quit.');
-});
+
+mongo.setupConnection().then(() => {
+  server.listen(PORT, () => {
+    console.log(`App listening on port ${PORT}`);
+    console.log('Press Ctrl+C to quit.');
+  })
+})

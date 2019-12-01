@@ -1,9 +1,5 @@
 env: flex
 runtime: nodejs
 
-# Using only a single instance since the clients are in local memory
-manual_scaling:
-  instances: 1
-
 network:
   session_affinity: true
