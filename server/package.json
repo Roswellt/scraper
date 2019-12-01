@@ -7,14 +7,16 @@
   "author": "0Calories <cppanand@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "ejs": "^2.6.1",
     "express": "^4.16.4",
+    "mongodb": "^3.3.5",
     "nodemon": "^2.0.1",
     "request": "^2.88.0",
     "socket.io": "^2.2.0"
   },
   "scripts": {
-    "start": "nodemon server/app.js"
+    "start": "nodemon src/app.js"
   },
   "devDependencies": {}
 }

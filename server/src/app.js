@@ -1,4 +1,5 @@
 const express = require('express');
+const dotenv = require('dotenv')
 
 let route_controller = require('./routes/route_controller');
 let socket_controller = require('./sockets');
