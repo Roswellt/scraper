@@ -21,7 +21,7 @@ export default class App extends Component {
     [Battery.BatteryState.FULL]: "Full"
   }
 
-  async componentDidMount() {
+  getBatteryInfo = async () => {
     let powerState = await Battery.getPowerStateAsync();
     let totalMem = Device.totalMemory;
     let osVersion = Device.osVersion;
@@ -46,13 +46,20 @@ export default class App extends Component {
     }
   }
 
-  componentWillMount() {
+  async componentDidMount() {
     YellowBox.ignoreWarnings([
         'Unrecognized WebSocket connection option(s) `agent`, `perMessageDeflate`, `pfx`, `key`, `passphrase`, `cert`, `ca`, `ciphers`, `rejectUnauthorized`. Did you mean to put these under `headers`?'
     ]);
 
     const socket = io.connect(URL);
-    socket.emit("client_connect");
+
+    await this.getBatteryInfo();
+    powerState = this.state.powerState;
+    powerState.batteryState = this.batteryState[powerState.batteryState]
+    socket.emit("client_connect", {
+      powerState: powerState,
+      totalMem: this.state.totalMem / Math.pow(1,9) // Convert from bytes to GB
+    });
 
     socket.on("scrape", (data) => {
       console.log(`Scraping url ${data.url}`);
@@ -72,7 +79,8 @@ export default class App extends Component {
         socket.emit("return_result", {
           result: contents,
           user_id: data.user_id,
-          powerState: powerState
+          powerState: powerState,
+          totalMem: this.state.totalMem / Math.pow(1,9) // Convert from bytes to GB
         })
       })
       .catch(() => {
@@ -80,7 +88,8 @@ export default class App extends Component {
         socket.emit("return_result", {
           result: error,
           user_id: data.user_id,
-          powerState: {}
+          powerState: {},
+          totalMem: 0
         })
       })
     });

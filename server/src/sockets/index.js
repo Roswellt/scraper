@@ -1,5 +1,5 @@
-let { roundRobin } = require("../utils/utils");
-let mongo = require('../mongo-setup');
+let { roundRobin, customAlgo } = require("../utils/utils");
+let { getRRCount, getClientCollection } = require('../mongo-setup');
 
 module.exports = function(io) {
 
@@ -7,9 +7,17 @@ module.exports = function(io) {
     console.log(`New socket connected ${socket.id}`);
 
     socket.on("call_scrape", async (data) => {
-      let clients = await mongo.getClientCollection().find().toArray();
-      let counter = await mongo.getRRCount();
-      let client = roundRobin(clients, counter.value);
+      let clients = await getClientCollection().find().toArray();
+      
+      
+      // Run in round robin
+      // let counter = await getRRCount();
+      // let client = roundRobin(clients, counter.value);
+
+
+      // Run using custom algorithm
+      let client = customAlgo(clients);
+
       if (client != undefined) {
         console.log(`Using client ${client.socket_id} to scrape url: ${data.url}`)
         io.to(client.socket_id).emit("scrape", {
@@ -27,16 +35,20 @@ module.exports = function(io) {
     socket.on("return_result", (data) => {
       console.log(`Sending to ${data.user_id}`);
       io.to(data.user_id).emit("return_result_user", {
-        result: data.result
+        result: data.result,
+        powerState: data.powerState,
+        totalMem: data.totalMem
       })
     })
 
-    socket.on("client_connect", () => {
-      let clients = mongo.getClientCollection();
+    socket.on("client_connect", (data) => {
+      let clients = getClientCollection();
       let id = Math.random().toString(36).substring(7);
       clients.insertOne({
         id: id,
-        socket_id: socket.id
+        socket_id: socket.id,
+        powerState: data.powerState,
+        totalMem: data.totalMem
       })
       console.log(`Client added ${socket.id}`);
       console.log(`Clients list ${clients.find()}`)
@@ -44,7 +56,7 @@ module.exports = function(io) {
 
     socket.on("disconnect", () => {
       console.log(`Client disconnected ${socket.id}`);
-      let clients = mongo.getClientCollection();
+      let clients = getClientCollection();
       clients.deleteOne({
         socket_id: socket.id
       })

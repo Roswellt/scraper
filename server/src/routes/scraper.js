@@ -13,9 +13,8 @@ const resultPromise = () => {
   });
 }
 
-router.get('/*', (req, res) => {
-  // Since params are URLs which can contain slashes, use * wildcard to get <URL> from scraper-job/<URL>
-  const url = req.params[0];
+router.get('/', (req, res) => {
+  const url = req.query.url;
   console.log(`Calling scrape ${url} for user ${socket.id}`);
   socket.emit("call_scrape", {
     url: url,
