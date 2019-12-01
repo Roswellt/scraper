@@ -20,6 +20,7 @@ const setupConnection = () => {
       }
       database = client.db(DATABASE_NAME);
       setupRRCount();
+      clearClientsCollection();
       console.log("Connected to `" + DATABASE_NAME + "`!");
       resolve();
     })
@@ -28,6 +29,11 @@ const setupConnection = () => {
 
 const getClientCollection = () => {
   return database.collection(CLIENTS_COLLECTION);
+}
+
+const clearClientsCollection = async () => {
+  collection = getClientCollection();
+  await collection.deleteMany();
 }
 
 const getRRCountCollection = () => {

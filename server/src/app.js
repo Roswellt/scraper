@@ -16,7 +16,7 @@ app.use(express.static('./public'));
 route_controller(app);
 
 var server = require('http').Server(app);
-server.setTimeout(10000);
+server.setTimeout(100000);
 var io = require('socket.io').listen(server);
 
 // Set up the sockets

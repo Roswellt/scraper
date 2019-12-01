@@ -2,8 +2,8 @@ var express = require('express');
 var router = express.Router();
 
 let io = require("socket.io-client");
-let socket = io.connect("https://scraper-260404.appspot.com/");
-// let socket = io.connect("http://localhost:8080");
+let socket = io.connect("https://scraper-260404.appspot.com/", {transports: ['websocket']});
+// let socket = io.connect("http://localhost:8080", {transports: ['websocket']});
 
 const resultPromise = () => {
   return new Promise((resolve, reject) => {

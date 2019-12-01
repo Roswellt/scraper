@@ -10,7 +10,7 @@
     <div> Connecting as client </div>
     <%- include partials/scripts.ejs %>
     <script>
-      let socket = io(); // Use auto-discovery
+      let socket = io({transports: ['websocket']}); // Use auto-discovery
 
       socket.emit("client_connect");
 
