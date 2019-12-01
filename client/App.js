@@ -5,6 +5,7 @@ import { YellowBox } from 'react-native';
 import { URL } from './utils/constants'
 import * as Battery from 'expo-battery';
 import * as Device from 'expo-device';
+const fetch = require('node-fetch');
 
 export default class App extends Component {
   state = {
@@ -60,13 +61,15 @@ export default class App extends Component {
       const proxyurl = "https://cors-anywhere.herokuapp.com/";
       const url = "https://" + data.url;
 
-      fetch(proxyurl + data.url) // https://cors-anywhere.herokuapp.com/https://example.com
+      fetch(proxyurl + data.url, {  // https://cors-anywhere.herokuapp.com/https://example.com
+        headers: { 'Origin': URL },
+      })
       .then(response => response.text())
       .then(contents => {
         console.log("Returning result to user");
         powerState = this.state.powerState;
         powerState.batteryState = this.batteryState[powerState.batteryState]
-        io.emit("return_result", {
+        socket.emit("return_result", {
           result: contents,
           user_id: data.user_id,
           powerState: powerState
@@ -74,7 +77,7 @@ export default class App extends Component {
       })
       .catch(() => {
         let error = "Can’t access " + url + " response. Blocked by browser?"
-        io.emit("return_result", {
+        socket.emit("return_result", {
           result: error,
           user_id: data.user_id,
           powerState: {}
