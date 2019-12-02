@@ -1,40 +1,77 @@
-let mongo = require("../mongo-setup");
+const { getJobCollection } = require('../mongo-setup')
 
-const BATTERY_COEFFICIENT = 1
-const TOTAL_MEMORY_COEFFICIENT = 0.4
+const addJobToQueue = async (url, socket_id, user_id) => {
+  let collection = getJobCollection();
+  await collection.insertOne({
+    url: url,
+    socket_id: socket_id,
+    user_id: user_id,
+    processing: false,
+    timestamp: (+ new Date()),
+  });
+}
 
-const roundRobin = (clients, counter) => {
-    console.log(clients, counter);
-    let client = clients[counter % clients.length];
-    if (client === undefined) {
-        return undefined;
+const addJobInProcess = async (url, socket_id, user_id) => {
+  let collection = getJobCollection();
+  await collection.insertOne({
+    url: url,
+    socket_id: socket_id,
+    user_id: user_id,
+    processing: true,
+    timestamp: (+ new Date()),
+  });
+}
+
+const updateJobToInProgress = async (url, socket_id, user_id) => {
+  let collection = getJobCollection();
+  await collection.findOneAndUpdate({
+    url: url,
+    socket_id: socket_id,
+    user_id: user_id,
+    processing: false,
+  }, {
+    $set: {
+      processing: true
     }
-    counter = (counter + 1) % clients.length;
-    mongo.updateRRCount(counter);
-    console.log(`Client chosen ${client}`);
-    return client;
+  });
 }
 
-
-const customAlgo = (clients) => {
-    let weightedSum = Infinity;
-    let allocated = null
-    let vmSum = null
-    clients.forEach(elem => {
-        if (!elem.powerState.length) {
-            vmSum = elem.totalMem * TOTAL_MEMORY_COEFFICIENT
-            console.log(vmSum);
-        } else {
-            vmSum = (elem.powerState.batteryLevel * BATTERY_COEFFICIENT) + (elem.totalMem * TOTAL_MEMORY_COEFFICIENT)
-        }
-        if (vmSum < weightedSum) {
-            weightedSum = vmSum;
-            allocated = elem;
-        }
-    })
-    console.log(`Client chosen ${allocated}`);
-    return allocated;
+// Remove job from collection once finished
+const finishJob = async (socket_id) => {
+  let collection = getJobCollection();
+  let finished = await collection.findOneAndDelete({
+    socket_id: socket_id,
+    processing: true
+  });
+  console.log(`Removed finished job ${JSON.stringify(finished)}`);
 }
 
+const isSocketProcessing = async (socket_id) => {
+  let collection = getJobCollection();
+  let jobs = await collection.find({
+    socket_id: socket_id,
+    processing: true
+  }).toArray();
 
-module.exports = { roundRobin, customAlgo };
+  if (!jobs.length) {
+    return false;
+  }
+  return true;
+}
+
+const getNextJob = async (socket_id) => {
+  let collection = getJobCollection();
+  let jobs = await collection.find({
+    socket_id: socket_id,
+    processing: false
+  }).sort({
+    timestamp: 1
+  }).toArray();
+
+  if (!jobs.length) {
+    return null;
+  }
+  return jobs[0];
+}
+
+module.exports = { addJobToQueue, getNextJob, finishJob, addJobInProcess, isSocketProcessing, updateJobToInProgress }

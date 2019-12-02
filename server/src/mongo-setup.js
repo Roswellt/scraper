@@ -1,9 +1,10 @@
-const dotenv = require('dotenv')
+const dotenv = require('dotenv');
 const MongoClient = require("mongodb").MongoClient;
 
-const DATABASE_NAME = "scraper" 
-const CLIENTS_COLLECTION = "clients"
-const RRCOUNT_COLLECTION = "counter"
+const DATABASE_NAME = "scraper" ;
+const CLIENTS_COLLECTION = "clients";
+const RRCOUNT_COLLECTION = "counter";
+const JOB_COLLECTION = "jobs";
 
 let database;
 
@@ -21,6 +22,7 @@ const setupConnection = () => {
       database = client.db(DATABASE_NAME);
       setupRRCount();
       clearClientsCollection();
+      clearJobCollection();
       console.log("Connected to `" + DATABASE_NAME + "`!");
       resolve();
     })
@@ -29,6 +31,15 @@ const setupConnection = () => {
 
 const getClientCollection = () => {
   return database.collection(CLIENTS_COLLECTION);
+}
+
+const getJobCollection = () => {
+  return database.collection(JOB_COLLECTION);
+}
+
+const clearJobCollection = async () => {
+  collection = getJobCollection();
+  await collection.deleteMany();
 }
 
 const clearClientsCollection = async () => {
@@ -68,4 +79,4 @@ const setupRRCount = async () => {
   }
 }
 
-module.exports = { setupConnection, getClientCollection, getRRCountCollection, getRRCount, updateRRCount };
+module.exports = { setupConnection, getClientCollection, getRRCountCollection, getRRCount, updateRRCount, getJobCollection };
