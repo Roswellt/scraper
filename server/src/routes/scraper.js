@@ -2,10 +2,8 @@ var express = require('express');
 var router = express.Router();
 
 let io = require("socket.io-client");
-let socket = io.connect("https://scraper-260404.appspot.com/", {transports: ['websocket']});
-// let socket = io.connect("http://localhost:8080", {transports: ['websocket']});
 
-const resultPromise = () => {
+const resultPromise = (socket) => {
   return new Promise((resolve, reject) => {
     socket.on("return_result_user", (data) => {
       resolve(data);
@@ -15,13 +13,18 @@ const resultPromise = () => {
 
 router.get('/', (req, res) => {
   const url = req.query.url;
-  console.log(`Calling scrape ${url} for user ${socket.id}`);
-  socket.emit("call_scrape", {
-    url: url,
-    user_id: socket.id
+  let socket = io.connect("https://scraper-260404.appspot.com/", {transports: ['websocket']});
+  // let socket = io.connect("http://localhost:8080", {transports: ['websocket']});
+
+  socket.on("connect", () => {
+    console.log(`Calling scrape ${url} for user ${socket.id}`);
+    socket.emit("call_scrape", {
+      url: url,
+      user_id: socket.id
+    })
   })
 
-  resultPromise().then(message => {
+  resultPromise(socket).then(message => {
     return res.status(200).send(message)
   })
 });

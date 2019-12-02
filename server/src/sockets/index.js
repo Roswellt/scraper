@@ -11,12 +11,12 @@ module.exports = function(io) {
       
       
       // Run in round robin
-      // let counter = await getRRCount();
-      // let client = roundRobin(clients, counter.value);
+      let counter = await getRRCount();
+      let client = roundRobin(clients, counter.value);
 
 
       // Run using custom algorithm
-      let client = customAlgo(clients);
+      // let client = customAlgo(clients);
 
       if (client != undefined) {
         console.log(`Using client ${client.socket_id} to scrape url: ${data.url}`)
