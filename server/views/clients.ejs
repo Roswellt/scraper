@@ -7,9 +7,16 @@
   </head>
   <body>
     
-    <div> Connecting as client </div>
+    <div id="message"> Connecting as client </div>
     <%- include partials/scripts.ejs %>
     <script>
+
+      let logAndDisplay = function(msg) {
+        let e = document.getElementById('message')
+        e.innerHTML = e.innerHTML + "<br>" + msg
+        console.log(msg)
+      }
+
       let socket = io({transports: ['websocket']}); // Use auto-discovery
 
       socket.emit("client_connect", {
@@ -18,11 +25,11 @@
       });
 
       socket.on("connect", () => {
-        console.log("Connected");
+        logAndDisplay("Connected");
       })
 
       socket.on("scrape", (data) => {
-        console.log(`Scraping url ${data.url}`);
+        logAndDisplay(`Scraping url ${data.url}`);
 
         // Send request through CORS proxy first to avoid access error
         const proxyurl = "https://cors-anywhere.herokuapp.com/";

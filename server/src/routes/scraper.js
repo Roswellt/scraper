@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
+const { DEBUG = false } = process.env
+
 let io = require("socket.io-client");
 
 const resultPromise = (socket) => {
@@ -13,8 +15,17 @@ const resultPromise = (socket) => {
 
 router.get('/', (req, res) => {
   const url = req.query.url;
-  let socket = io.connect("https://scraper-260404.appspot.com/", {transports: ['websocket']});
-  // let socket = io.connect("http://localhost:8080", {transports: ['websocket']});
+  
+  if (!url) {
+    return res.status(400).send('There was no url given')
+  }
+  
+  let socket;
+  if (!DEBUG) {
+    socket = io.connect("https://scraper-260404.appspot.com/", {transports: ['websocket']});
+  } else {
+    socket = io.connect("http://localhost:8080", {transports: ['websocket']});
+  }
 
   socket.on("connect", () => {
     console.log(`Calling scrape ${url} for user ${socket.id}`);
