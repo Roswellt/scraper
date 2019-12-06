@@ -5,6 +5,7 @@ import { YellowBox } from 'react-native';
 import { URL } from './utils/constants'
 import * as Battery from 'expo-battery';
 import * as Device from 'expo-device';
+import { activateKeepAwake } from 'expo-keep-awake';
 const fetch = require('node-fetch');
 
 export default class App extends Component {
@@ -47,6 +48,7 @@ export default class App extends Component {
   }
 
   async componentDidMount() {
+    activateKeepAwake();
     YellowBox.ignoreWarnings([
         'Unrecognized WebSocket connection option(s) `agent`, `perMessageDeflate`, `pfx`, `key`, `passphrase`, `cert`, `ca`, `ciphers`, `rejectUnauthorized`. Did you mean to put these under `headers`?'
     ]);
