@@ -10,9 +10,11 @@ const fetch = require('node-fetch');
 
 export default class App extends Component {
   state = {
+    stats: null,
     powerState: null,
     totalMem: null,
     osVersion: null,
+    status: null,
   }
 
   batteryState = {
@@ -34,8 +36,8 @@ export default class App extends Component {
   }
 
   displayBatteryInfo = () => {
-    if(this.state.powerState) {
-      return(
+    if (this.state.powerState) {
+      return (
         <View>
           <Text>Current Battery Level: {this.state.powerState.batteryLevel}</Text>
           <Text>Current Battery State: {this.batteryState[this.state.powerState.batteryState]}</Text>
@@ -50,8 +52,9 @@ export default class App extends Component {
   async componentDidMount() {
     activateKeepAwake();
     YellowBox.ignoreWarnings([
-        'Unrecognized WebSocket connection option(s) `agent`, `perMessageDeflate`, `pfx`, `key`, `passphrase`, `cert`, `ca`, `ciphers`, `rejectUnauthorized`. Did you mean to put these under `headers`?'
+      'Unrecognized WebSocket connection option(s) `agent`, `perMessageDeflate`, `pfx`, `key`, `passphrase`, `cert`, `ca`, `ciphers`, `rejectUnauthorized`. Did you mean to put these under `headers`?'
     ]);
+    this.setState({ status: "Waiting for job" })
 
     const socket = io.connect(URL);
 
@@ -60,11 +63,11 @@ export default class App extends Component {
     powerState.batteryState = this.batteryState[powerState.batteryState]
     socket.emit("client_connect", {
       powerState: powerState,
-      totalMem: this.state.totalMem / Math.pow(1,9) // Convert from bytes to GB
+      totalMem: this.state.totalMem / Math.pow(1, 9) // Convert from bytes to GB
     });
 
     socket.on("scrape", (data) => {
-      console.log(`Scraping url ${data.url}`);
+      this.setState({ status: `Scraping url ${data.url}` });
 
       // Send request through CORS proxy first to avoid access error
       const proxyurl = "https://cors-anywhere.herokuapp.com/";
@@ -73,27 +76,28 @@ export default class App extends Component {
       fetch(proxyurl + data.url, {  // https://cors-anywhere.herokuapp.com/https://example.com
         headers: { 'Origin': URL },
       })
-      .then(response => response.text())
-      .then(contents => {
-        console.log("Returning result to user");
-        powerState = this.state.powerState;
-        powerState.batteryState = this.batteryState[powerState.batteryState]
-        socket.emit("return_result", {
-          result: contents,
-          user_id: data.user_id,
-          powerState: powerState,
-          totalMem: this.state.totalMem / Math.pow(1,9) // Convert from bytes to GB
+        .then(response => response.text())
+        .then(contents => {
+          this.setState({ status: `Finished scraping ${data.url}` });
+          powerState = this.state.powerState;
+          powerState.batteryState = this.batteryState[powerState.batteryState]
+          socket.emit("return_result", {
+            result: contents,
+            user_id: data.user_id,
+            powerState: powerState,
+            totalMem: this.state.totalMem / Math.pow(1, 9) // Convert from bytes to GB
+          })
         })
-      })
-      .catch(() => {
-        let error = "Can’t access " + url + " response. Blocked by browser?"
-        socket.emit("return_result", {
-          result: error,
-          user_id: data.user_id,
-          powerState: {},
-          totalMem: 0
+        .catch(() => {
+          let error = "Can’t access " + url + " response. Blocked by browser?"
+          this.setState({ status: `Blocked by browser` });
+          socket.emit("return_result", {
+            result: error,
+            user_id: data.user_id,
+            powerState: {},
+            totalMem: 0
+          })
         })
-      })
     });
   }
 
@@ -105,6 +109,7 @@ export default class App extends Component {
           <this.displayBatteryInfo></this.displayBatteryInfo>
           <Text>Total Memory: {this.state.totalMem}</Text>
           <Text>OS Version: {this.state.osVersion}</Text>
+          <Text>Status: {this.state.status}</Text>
         </View>
       </View>
     );
@@ -120,5 +125,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 25
-  }
+  },
+  status: {}
 });
