@@ -1,6 +1,6 @@
 let mongo = require("../mongo-setup");
 
-const BATTERY_COEFFICIENT = 1
+const BATTERY_COEFFICIENT = 0.6
 const TOTAL_MEMORY_COEFFICIENT = 0.4
 
 const roundRobin = (clients, counter) => {
