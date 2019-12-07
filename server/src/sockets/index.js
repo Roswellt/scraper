@@ -15,12 +15,15 @@ module.exports = function(io) {
 
       if (ALGORITHM === 'CUSTOM') {
         // Run using custom algorithm
+        console.log("Running custom algo");
         client = customAlgo(clients);
       } else if (ALGORITHM === 'PABFD') {
         // run using power aware bast fit decreasing
+        console.log("Running PABFD algo");
         client = pabfd(data, clients)
       } else {
         // Run in round robin
+        console.log("Running round robin");
         let counter = await getRRCount();
         client = roundRobin(clients, counter.value);
       }

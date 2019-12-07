@@ -25,11 +25,10 @@ var io = require('socket.io').listen(server);
 socket_controller(io);
 
 const PORT = process.env.PORT || 8080;
-const ADDRESS = process.env.ADDRESS || 'localhost'
 
 mongo.setupConnection().then(() => {
-  server.listen(PORT, ADDRESS, () => {
-    console.log(`App listening on  ${ADDRESS}:${PORT}`);
+  server.listen(PORT, () => {
+    console.log(`App listening on ${PORT}`);
     console.log('Press Ctrl+C to quit.');
   })
 })

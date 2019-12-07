@@ -12,7 +12,7 @@ const setupConnection = () => {
     const { DATABASE_URL, DEBUG } = process.env;
 
     let url
-    if (DEBUG) {
+    if (DEBUG === 'true') {
       url = 'mongodb://localhost:27017'
     } else {
       url = DATABASE_URL
