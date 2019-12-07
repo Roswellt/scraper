@@ -42,7 +42,7 @@ module.exports = function(io) {
     socket.on("return_result", (data) => {
       console.log(`Sending to ${data.user_id}`);
       io.to(data.user_id).emit("return_result_user", {
-        result: data.results,
+        result: data.result,
         powerState: data.powerState,
         totalMem: data.totalMem
       })
