@@ -15,17 +15,19 @@ export default class App extends Component {
     totalMem: null,
     osVersion: null,
     status: null,
+    socket: null
   }
 
   batteryState = {
     [Battery.BatteryState.UNKNOWN]: "Unknown",
     [Battery.BatteryState.UNPLUGGED]: "Unplugged",
-    [Battery.BatteryState.PLUGGED]: "Charging",
+    [Battery.BatteryState.CHARGING]: "Charging",
     [Battery.BatteryState.FULL]: "Full"
   }
 
   getBatteryInfo = async () => {
     let powerState = await Battery.getPowerStateAsync();
+    powerState.batteryState = this.batteryState[powerState.batteryState]
     let totalMem = Device.totalMemory;
     let osVersion = Device.osVersion;
     this.setState({
@@ -40,7 +42,7 @@ export default class App extends Component {
       return (
         <View>
           <Text>Current Battery Level: {this.state.powerState.batteryLevel}</Text>
-          <Text>Current Battery State: {this.batteryState[this.state.powerState.batteryState]}</Text>
+          <Text>Current Battery State: {this.state.powerState.batteryState}</Text>
           <Text>Low Power Mode: {JSON.stringify(this.state.powerState.lowPowerMode)}</Text>
         </View>
       )
@@ -52,9 +54,16 @@ export default class App extends Component {
   _subscribe = () => {
     this._subscription = Battery.addBatteryLevelListener(({ batteryLevel }) => {
       console.log("Battery changed");
+      let powerState = this.state.powerState;
+      powerState.batteryLevel = batteryLevel
       this.setState({
-        [powerState.batteryLevel]: batteryLevel
+        powerState: powerState
       });
+      if (this.state.socket != null) {
+        this.state.socket.emit("update_battery", {
+          powerState: powerState
+        })
+      }
     });
   };
 
@@ -83,7 +92,7 @@ export default class App extends Component {
       totalMem: this.state.totalMem / Math.pow(1, 9) // Convert from bytes to GB
     });
 
-    socket.on("scrape", (data) => {
+    socket.on("scrape", async (data) => {
       this.setState({ status: `Scraping url ${data.url}` });
 
       // Send request through CORS proxy first to avoid access error
@@ -115,15 +124,19 @@ export default class App extends Component {
             totalMem: 0
           })
         })
+      
+        let powerState = await Battery.getPowerStateAsync();
+        powerState.batteryState = this.batteryState[powerState.batteryState]
+        console.log(powerState);
+        this.setState({
+          powerState: powerState
+        })
+        socket.emit("update_battery", {
+          powerState: powerState
+        })
     });
 
     this._subscribe();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    this.state.socket.emit("update_battery", {
-      powerState: this.state.powerState
-    })
   }
 
   componentWillUnmount() {
