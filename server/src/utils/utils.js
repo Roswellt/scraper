@@ -17,7 +17,7 @@ const roundRobin = (clients, counter) => {
 
 
 const customAlgo = (clients) => {
-    let weightedSum = Infinity;
+    let weightedSum = Number.NEGATIVE_INFINITY;
     let allocated = null
     let vmSum = null
     clients.forEach(elem => {
@@ -27,7 +27,7 @@ const customAlgo = (clients) => {
         } else {
             vmSum = (elem.powerState.batteryLevel * BATTERY_COEFFICIENT) + (elem.totalMem * TOTAL_MEMORY_COEFFICIENT)
         }
-        if (vmSum < weightedSum) {
+        if (vmSum > weightedSum) {
             weightedSum = vmSum;
             allocated = elem;
         }

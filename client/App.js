@@ -49,6 +49,20 @@ export default class App extends Component {
     }
   }
 
+  _subscribe = () => {
+    this._subscription = Battery.addBatteryLevelListener(({ batteryLevel }) => {
+      console.log("Battery changed");
+      this.setState({
+        [powerState.batteryLevel]: batteryLevel
+      });
+    });
+  };
+
+  _unsubscribe = () => {
+    this._subscription && this._subscription.remove();
+    this._subscription = null;
+  };
+
   async componentDidMount() {
     activateKeepAwake();
     YellowBox.ignoreWarnings([
@@ -57,6 +71,9 @@ export default class App extends Component {
     this.setState({ status: "Waiting for job" })
 
     const socket = io.connect(URL);
+    this.setState({
+      socket: socket
+    })
 
     await this.getBatteryInfo();
     powerState = this.state.powerState;
@@ -99,6 +116,19 @@ export default class App extends Component {
           })
         })
     });
+
+    this._subscribe();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    this.state.socket.emit("update_battery", {
+      powerState: this.state.powerState
+    })
+  }
+
+  componentWillUnmount() {
+    this._unsubscribe();
+    this.state.socket.disconnect();
   }
 
   render() {

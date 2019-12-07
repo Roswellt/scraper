@@ -54,6 +54,15 @@ module.exports = function(io) {
       console.log(`Clients list ${clients.find()}`)
     })
 
+    socket.on("update_battery", (data) => {
+      let clients = getClientCollection();
+      clients.updateOne({
+        socket_id: socket.id
+      }, { $set: {
+        powerState: data.powerState
+      }})
+    })
+
     socket.on("disconnect", () => {
       console.log(`Client disconnected ${socket.id}`);
       let clients = getClientCollection();
