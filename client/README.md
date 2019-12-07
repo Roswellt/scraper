@@ -7,6 +7,7 @@ Run `yarn start` to start React Native server
 ### Modifying server URL
 Before running the client, the server url has to be added
 In the client/utils/constants.js folder replace the URL = <URL_HERE> with -> http://<IP_OF_DEVICE_RUNNING_SERVER>:8080
+
 Ex. `http://192.168.2.210:8080` where `192.168.2.210` is the IP of my PC
 
 
