@@ -1,7 +1,12 @@
 let mongo = require("../mongo-setup");
 
-const BATTERY_COEFFICIENT = 0.6
-const TOTAL_MEMORY_COEFFICIENT = 0.4
+const BATTERY_COEFFICIENT = 0.6;
+const TOTAL_MEMORY_COEFFICIENT = 0.4;
+const BATTERY_POWER_REQUIRED = 0.025;
+
+const _estimatePowerUse = (job, client) => {
+    return Math.random() * 0.02;
+}
 
 const roundRobin = (clients, counter) => {
     console.log(clients, counter);
@@ -36,5 +41,25 @@ const customAlgo = (clients) => {
     return allocated;
 }
 
+const pabfd = (job, clients) => {
+    let minPower = Number.MAX_VALUE;
+    let allocated = null;
+    // decreasing utilization aka power
+    clients.sort((c1, c2) => {
+        if (!c1.powerState) c1.powerState = {batteryLevel: 0}
+        if (!c2.powerState) c2.powerState = {batteryLevel: 0}
+        return c2.powerState.batteryLevel - c1.powerState.batteryLevel
+    })
+    clients.forEach(client => {
+        if (client.powerState.batteryLevel > BATTERY_POWER_REQUIRED) {
+            let power = _estimatePowerUse(job, client);
+            if (power < minPower) {
+                minPower = power;
+                allocated = client;
+            }
+        }
+    })
+    return allocated
+}
 
-module.exports = { roundRobin, customAlgo };
+module.exports = { roundRobin, pabfd, customAlgo };

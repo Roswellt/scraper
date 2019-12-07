@@ -1,5 +1,7 @@
-let { roundRobin, customAlgo } = require("../utils/utils");
+let { roundRobin, customAlgo, pabfd } = require("../utils/utils");
 let { getRRCount, getClientCollection } = require('../mongo-setup');
+
+const {ALGORITHM} = process.env
 
 module.exports = function(io) {
 
@@ -9,14 +11,19 @@ module.exports = function(io) {
     socket.on("call_scrape", async (data) => {
       let clients = await getClientCollection().find().toArray();
       
-      
-      // Run in round robin
-      let counter = await getRRCount();
-      let client = roundRobin(clients, counter.value);
+      let client = null;
 
-
-      // Run using custom algorithm
-      // let client = customAlgo(clients);
+      if (ALGORITHM === 'CUSTOM') {
+        // Run using custom algorithm
+        client = customAlgo(clients);
+      } else if (ALGORITHM === 'PABFD') {
+        // run using power aware bast fit decreasing
+        client = pabfd(data, clients)
+      } else {
+        // Run in round robin
+        let counter = await getRRCount();
+        client = roundRobin(clients, counter.value);
+      }
 
       if (client != undefined) {
         console.log(`Using client ${client.socket_id} to scrape url: ${data.url}`)
