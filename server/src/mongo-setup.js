@@ -1,4 +1,3 @@
-const dotenv = require('dotenv')
 const MongoClient = require("mongodb").MongoClient;
 
 const DATABASE_NAME = "scraper" 
@@ -7,13 +6,21 @@ const RRCOUNT_COLLECTION = "counter"
 
 let database;
 
-dotenv.config();
 const setupConnection = () => {
 
   return new Promise((resolve, reject) => {
-    const { DATABASE_URL } = process.env;
+    const { DATABASE_URL, DEBUG } = process.env;
 
-    MongoClient.connect(DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true }, (error, client) => {
+    let url
+    if (DEBUG) {
+      url = 'mongodb://localhost:27017'
+    } else {
+      url = DATABASE_URL
+    }
+
+    console.log('connecting to mongo db ' + url);
+    
+    MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, (error, client) => {
       if(error) {
         console.log(error);
         throw error;
