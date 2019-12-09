@@ -15,7 +15,8 @@ export default class App extends Component {
     totalMem: null,
     osVersion: null,
     status: null,
-    socket: null
+    socket: null,
+    isScraping: false
   }
 
   batteryState = {
@@ -79,7 +80,7 @@ export default class App extends Component {
     ]);
     this.setState({ status: "Waiting for job" })
 
-    const socket = io.connect(URL);
+    const socket = io.connect(URL, {transports: ['websocket']});
     this.setState({
       socket: socket
     })
@@ -93,7 +94,10 @@ export default class App extends Component {
     });
 
     socket.on("scrape", async (data) => {
-      this.setState({ status: `Scraping url ${data.url}` });
+      this.setState({
+        status: `Scraping url ${data.url}`,
+        isScraping: true
+      });
 
       // Send request through CORS proxy first to avoid access error
       const proxyurl = "https://cors-anywhere.herokuapp.com/";
@@ -129,7 +133,8 @@ export default class App extends Component {
         powerState.batteryState = this.batteryState[powerState.batteryState]
         console.log(powerState);
         this.setState({
-          powerState: powerState
+          powerState: powerState,
+          isScraping: false
         })
         socket.emit("update_battery", {
           powerState: powerState
@@ -145,14 +150,21 @@ export default class App extends Component {
   }
 
   render() {
+    let isScraping;
+    if (this.state.isScraping === null || this.state.isScraping === false) {
+      isScraping = false
+    } else {
+      isScraping = true
+    }
     return (
-      <View style={styles.container}>
+      <View style={isScraping === false ? styles.container : styles.containerGreen}>
         <View>
           <Text style={styles.text}>Connected as client for scraper</Text>
           <this.displayBatteryInfo></this.displayBatteryInfo>
           <Text>Total Memory: {this.state.totalMem}</Text>
           <Text>OS Version: {this.state.osVersion}</Text>
           <Text>Status: {this.state.status}</Text>
+          <Text>Scraping: {isScraping === false ? 'false' : 'true'}</Text>
         </View>
       </View>
     );
@@ -162,7 +174,13 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  containerGreen: {
+    flex: 1,
+    backgroundColor: 'green',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
   }
   
   let socket;
-  if (!DEBUG) {
+  if (DEBUG === 'false') {
     socket = io.connect("https://scraper-260404.appspot.com/", {transports: ['websocket']});
   } else {
     socket = io.connect("http://localhost:8080", {transports: ['websocket']});
